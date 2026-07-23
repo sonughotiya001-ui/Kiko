@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kiko Preview - AI Code Studio</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-dark: #05070a;
+      --bg-card: #0d1117;
+      --bg-editor: #010409;
+      --accent-glow: #7c3aed;
+      --accent-cyan: #06b6d4;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #6b7280;
+      --border-color: #1f2937;
+      --font-ui: 'Plus Jakarta Sans', sans-serif;
+      --font-code: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-ui);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Glow Header */
+    header {
+      background: rgba(13, 17, 23, 0.8);
+      backdrop-filter: blur(12px);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-glow), var(--accent-cyan));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.6);
+      animation: neonPulse 2s infinite alternate;
+    }
+
+    @keyframes neonPulse {
+      0% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.4), 0 0 20px rgba(6, 182, 212, 0.2); }
+      100% { box-shadow: 0 0 25px rgba(124, 58, 237, 0.8), 0 0 35px rgba(236, 72, 153, 0.5); }
+    }
+
+    .brand h1 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #a78bfa, #22d3ee, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Action Buttons Bar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn:hover {
+      background: #1f2937;
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+    }
+
+    .btn-ai {
+      background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+      border: none;
+      color: white;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    }
+
+    .btn-ai:hover {
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6);
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--accent-red);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: var(--accent-red);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    .file-input-wrapper {
+      position: relative;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      left: 0; top: 0; opacity: 0;
+      width: 100%; height: 100%; cursor: pointer;
+    }
+
+    /* Main Container Split */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Code Editor Section */
+    .editor-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-color);
+      background: var(--bg-editor);
+      position: relative;
+    }
+
+    .tabs-bar {
+      display: flex;
+      background: #090d16;
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tabs-bar::-webkit-scrollbar { display: none; }
+
+    .tab {
+      padding: 10px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: var(--bg-editor);
+      color: var(--accent-cyan);
+      border-bottom: 2px solid var(--accent-cyan);
+    }
+
+    .editor-wrapper {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .line-numbers {
+      width: 45px;
+      padding: 14px 0;
+      background: #030712;
+      color: #374151;
+      font-family: var(--font-code);
+      font-size: 13px;
+      text-align: right;
+      padding-right: 10px;
+      user-select: none;
+      line-height: 1.6;
+      border-right: 1px solid #111827;
+    }
+
+    textarea.code-area {
+      flex: 1;
+      background: transparent;
+      color: #e5e7eb;
+      border: none;
+      padding: 14px;
+      font-family: var(--font-code);
+      font-size: 13.5px;
+      line-height: 1.6;
+      resize: none;
+      outline: none;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      tab-size: 2;
+      display: none;
+    }
+
+    textarea.code-area.active { display: block; }
+
+    /* Live Output & Console Panel */
+    .preview-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .preview-header {
+      background: #090d16;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+    }
+
+    .status-badge.error {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--accent-red);
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    iframe#previewFrame {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #ffffff;
+    }
+
+    /* Terminal Console */
+    .terminal-panel {
+      height: 120px;
+      background: #010409;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-code);
+    }
+
+    .terminal-header {
+      background: #0d1117;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .terminal-body {
+      flex: 1;
+      padding: 8px 12px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .log-line { margin-bottom: 3px; color: #9ca3af; }
+    .log-line.error { color: var(--accent-red); }
+    .log-line.success { color: var(--accent-green); }
+    .log-line.info { color: var(--accent-cyan); }
+
+    /* AI Prompt Overlay Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      width: 90%;
+      max-width: 520px;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(124, 58, 237, 0.3);
+      transform: translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-prompt-input {
+      width: 100%;
+      height: 100px;
+      background: #010409;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: #fff;
+      padding: 12px;
+      font-family: var(--font-ui);
+      font-size: 0.9rem;
+      resize: none;
+      outline: none;
+      margin-bottom: 14px;
+    }
+
+    .ai-prompt-input:focus {
+      border-color: var(--accent-glow);
+      box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+    }
+
+    /* Toast System */
+    .toast-container {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--bg-card);
+      border-left: 4px solid var(--accent-cyan);
+      color: var(--text-main);
+      padding: 12px 18px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease, fadeOut 0.3s 2.7s forwards;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateY(-10px); }
+    }
+
+    /* Mobile Adaptability */
+    @media (max-width: 768px) {
+      .app-container { flex-direction: column; }
+      .editor-section { height: 55%; border-right: none; border-bottom: 2px solid var(--border-color); }
+      .preview-section { height: 45%; }
+      .brand h1 { font-size: 0.95rem; }
+      .btn span { display: none; }
+      .btn { padding: 8px; }
+      .terminal-panel { height: 80px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-bolt"></i></div>
+      <h1>Kiko Preview</h1>
+    </div>
+
+    <div class="toolbar">
+      <!-- Upload File or Folder -->
+      <div class="file-input-wrapper">
+        <button class="btn"><i class="fa-solid fa-folder-open"></i> <span>Upload</span></button>
+        <input type="file" id="fileUpload" webkitdirectory directory multiple onchange="handleFolderOrFileUpload(event)">
+      </div>
+
+      <!-- Gemini AI Generator Button -->
+      <button class="btn btn-ai" onclick="openAIModal()"><i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Generate</span></button>
+
+      <!-- Advanced Features -->
+      <button class="btn" onclick="exportZip()"><i class="fa-solid fa-download"></i> <span>Export</span></button>
+      <button class="btn" onclick="toggleDeviceView()"><i class="fa-solid fa-mobile-screen"></i></button>
+      <button class="btn btn-danger" onclick="clearAllData()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+    </div>
+  </header>
+
+  <!-- Studio Workspace -->
+  <div class="app-container">
+
+    <!-- Left Editor -->
+    <div class="editor-section">
+      <div class="tabs-bar" id="tabsBar">
+        <button class="tab active" onclick="switchTab('html')"><i class="fa-brands fa-html5" style="color:#e34f26"></i> HTML</button>
+        <button class="tab" onclick="switchTab('css')"><i class="fa-brands fa-css3-alt" style="color:#1572b6"></i> CSS</button>
+        <button class="tab" onclick="switchTab('js')"><i class="fa-brands fa-js" style="color:#f7df1e"></i> JS</button>
+      </div>
+
+      <div class="editor-wrapper">
+        <div class="line-numbers" id="lineNumbers">1</div>
+        <textarea id="htmlCode" class="code-area active" spellcheck="false" placeholder="HTML code enter karein..." oninput="handleInput()"></textarea>
+        <textarea id="cssCode" class="code-area" spellcheck="false" placeholder="CSS code enter karein..." oninput="handleInput()"></textarea>
+        <textarea id="jsCode" class="code-area" spellcheck="false" placeholder="JS code enter karein..." oninput="handleInput()"></textarea>
+      </div>
+    </div>
+
+    <!-- Right Live Preview & Console -->
+    <div class="preview-section" id="previewContainer">
+      <div class="preview-header">
+        <span>LIVE PREVIEW</span>
+        <div id="statusBadge" class="status-badge">
+          <span class="status-dot"></span> <span id="statusText">Active</span>
+        </div>
+      </div>
+
+      <iframe id="previewFrame" sandbox="allow-scripts allow-modals"></iframe>
+
+      <!-- Console Output Panel -->
+      <div class="terminal-panel">
+        <div class="terminal-header">
+          <span><i class="fa-solid fa-terminal"></i> CONSOLE</span>
+          <i class="fa-solid fa-eraser" style="cursor:pointer;" onclick="clearConsole()"></i>
+        </div>
+        <div class="terminal-body" id="consoleBody">
+          <div class="log-line info">[Kiko Preview] IDE Ready. Safe Dark Engine Active.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Gemini AI Prompt Modal -->
+  <div class="modal-overlay" id="aiModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-brain" style="color:var(--accent-pink)"></i> Gemini 3.6 AI Generator</div>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeAIModal()"></i>
+      </div>
+      <textarea id="aiPrompt" class="ai-prompt-input" placeholder="Aap kya banana chahte hain? Example: A animated glassmorphism login form with dark neon theme..."></textarea>
+      <button class="btn btn-ai" style="width:100%; justify-content:center; padding:10px;" id="aiGenBtn" onclick="generateCodeWithGemini()">
+        <i class="fa-solid fa-bolt"></i> Code Generate & Auto-Fill
+      </button>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // System Configurations & Gemini 3.6 Flash Key
+    const GEMINI_API_KEY = "KEY_REMOVED_FOR_SECURITY";
+    let currentTab = 'html';
+    const STORAGE_KEY = 'kiko_preview_code_data';
+
+    // Page Load Logic
+    window.onload = () => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('htmlCode').value = data.html || '';
+        document.getElementById('cssCode').value = data.css || '';
+        document.getElementById('jsCode').value = data.js || '';
+      }
+      updateLineNumbers();
+      renderPreview();
+    };
+
+    // Auto-Save and Real-time Live Preview
+    let debounceTimer;
+    function handleInput() {
+      updateLineNumbers();
+      
+      const data = {
+        html: document.getElementById('htmlCode').value,
+        css: document.getElementById('cssCode').value,
+        js: document.getElementById('jsCode').value
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        renderPreview();
+      }, 300);
+    }
+
+    // Switch Tabs
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.code-area').forEach(c => c.classList.remove('active'));
+
+      const index = ['html', 'css', 'js'].indexOf(tab);
+      document.querySelectorAll('.tab')[index].classList.add('active');
+      document.getElementById(tab + 'Code').classList.add('active');
+      updateLineNumbers();
+    }
+
+    // Line Numbers Dynamic Calculation
+    function updateLineNumbers() {
+      const activeArea = document.getElementById(currentTab + 'Code');
+      const lines = activeArea.value.split('\n').length;
+      let html = '';
+      for (let i = 1; i <= lines; i++) html += i + '<br>';
+      document.getElementById('lineNumbers').innerHTML = html;
+    }
+
+    // Completely Clear Everything (No Default Leftover)
+    function clearAllData() {
+      if (confirm('Kya aap sabhi code completely clear karna chahte hain?')) {
+        document.getElementById('htmlCode').value = '';
+        document.getElementById('cssCode').value = '';
+        document.getElementById('jsCode').value = '';
+        localStorage.removeItem(STORAGE_KEY);
+        renderPreview();
+        updateLineNumbers();
+        showToast('Saara data successfully clear kar diya gaya hai!');
+        logConsole('Workspace reset: 0 characters remaining.', 'info');
+      }
+    }
+
+    // Universal Upload for Files & Folders with Auto-Routing
+    function handleFolderOrFileUpload(event) {
+      const files = event.target.files;
+      if (!files.length) return;
+
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const content = e.target.result;
+          const ext = file.name.split('.').pop().toLowerCase();
+
+          if (ext === 'html' || ext === 'htm') {
+            document.getElementById('htmlCode').value = content;
+          } else if (ext === 'css') {
+            document.getElementById('cssCode').value = content;
+          } else if (ext === 'js') {
+            document.getElementById('jsCode').value = content;
+          } else {
+            // Smart AI Routing Check
+            if (content.includes('<html') || content.includes('<div')) {
+              document.getElementById('htmlCode').value = content;
+            } else if (content.includes('{') && content.includes('color:')) {
+              document.getElementById('cssCode').value = content;
+            } else {
+              document.getElementById('jsCode').value = content;
+            }
+          }
+          handleInput();
+        };
+        reader.readAsText(file);
+      });
+      showToast('Files uploaded and auto-routed!');
+    }
+
+    // Gemini 3.6 Flash Integration
+    async function generateCodeWithGemini() {
+      const prompt = document.getElementById('aiPrompt').value.trim();
+      if (!prompt) return alert('Kripya prompt enter karein!');
+
+      const btn = document.getElementById('aiGenBtn');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating...`;
+      btn.disabled = true;
+
+      const systemInstruction = `You are a web code generator. Provide output STRICTLY as a JSON object with keys "html", "css", and "js". Do not include markdown ticks or additional explanations outside the JSON object. Example: {"html": "...", "css": "...", "js": "..."}`;
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${systemInstruction}\n\nUser Request: ${prompt}` 
